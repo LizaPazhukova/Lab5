@@ -49,20 +49,9 @@ namespace Logic.Services
             db.Save();
         }
 
-        public void Update(int id, CategoryDTO item)
+        public void Delete(int categoryId)
         {
-            var category = db.ProductCategories.GetById(id);
-            if (category == null)
-                return;
-
-            category.Name = item.Name;
-
-            db.Save();
-        }
-
-        public void Delete(ProductCategory category)
-        {
-            db.ProductCategories.Delete(category);
+            db.ProductCategories.Delete(categoryId);
             db.Save();
         }
 

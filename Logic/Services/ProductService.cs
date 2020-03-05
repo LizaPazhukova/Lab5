@@ -13,18 +13,19 @@ namespace Logic.Services
     public class ProductService : IProductService
     {
         private readonly IUnitOfWork db;
+        private readonly IMapper _mapper;
 
         public ProductService(IUnitOfWork uow)
         {
             db = uow;
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
+            _mapper = new Mapper(config);
         }
 
         public IEnumerable<ProductDTO> GetAll()
         {
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
-            var mapper = new Mapper(config);
            // Mapper.Initialize(cfg => cfg.CreateMap<Product, ProductDTO>());
-            return mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll());
+            return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll());
         }
 
         public ProductDTO GetById(int id)
@@ -32,10 +33,8 @@ namespace Logic.Services
             var product = db.Products.GetById(id);
             if (product == null)
                 throw new ValidationException("Product doesn't exist");
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
-            var mapper = new Mapper(config);
             //Mapper.Initialize(cfg => cfg.CreateMap<Product, ProductDto>());
-            return mapper.Map<Product, ProductDTO>(product);
+            return _mapper.Map<Product, ProductDTO>(product);
         }
 
         public void Create(ProductDTO item)
@@ -50,37 +49,21 @@ namespace Logic.Services
             db.Save();
         }
 
-        public void Update(int id, ProductDTO item)
+        public void Delete(int productId)
         {
-            var product = db.Products.GetById(id);
-            if (product == null)
-                return;
-
-            product.Name = item.Name;
-            product.Price = item.Price;
-
+            db.Products.Delete(productId);
             db.Save();
         }
 
-        public void Delete(Product product)
+        public IEnumerable<ProductDTO> GetByCategory(CategoryDTO categoryDTO)
         {
-            db.Products.Delete(product);
-            db.Save();
-        }
-
-        public IEnumerable<ProductDTO> GetByCategory(ProductCategory category)
-        {
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
-            var mapper = new Mapper(config);
-            return mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.ProductCategory.Name == category.Name));
+            return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.ProductCategory.Name == categoryDTO.Name));
            
         }
 
-        public IEnumerable<ProductDTO> GetByProvider(Provider provider)
+        public IEnumerable<ProductDTO> GetByProvider(ProviderDTO providerDTO)
         {
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
-            var mapper = new Mapper(config);
-            return mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.Providers.Contains(provider)));
+            return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.Providers.Select(p => p.Id).Contains(providerDTO.Id)));
         }
 
         public IEnumerable<ProductDTO> GetByUserCondition(Func<Product, bool> predicate)
@@ -88,9 +71,7 @@ namespace Logic.Services
             var products = db.Products.GetAll().Where(predicate);
             if (products == null)
                 throw new ValidationException("Products doesn't exist");
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Product, ProductDTO>());
-            var mapper = new Mapper(config);
-            return mapper.Map<IEnumerable<Product>, List<ProductDTO>>(products);
+            return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(products);
         }
 
         public void Dispose()

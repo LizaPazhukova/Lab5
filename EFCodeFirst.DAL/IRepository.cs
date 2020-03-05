@@ -8,7 +8,8 @@ namespace EFCodeFirst.DAL
     {
         IQueryable<T> GetAll(params Expression<Func<T, object>>[] properties);
         void Create(T entity);
-        void Delete(T entity);
+        void Delete(int id);
         T GetById(int id);
+        void Update(T entity);
     }
 }

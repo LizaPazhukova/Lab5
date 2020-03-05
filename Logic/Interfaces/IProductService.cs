@@ -13,10 +13,9 @@ namespace Logic.Interfaces
         IEnumerable<ProductDTO> GetAll();
         ProductDTO GetById(int id);
         void Create(ProductDTO item);
-        void Update(int id, ProductDTO item);
-        void Delete(Product product);
-        IEnumerable<ProductDTO> GetByCategory(ProductCategory category);
-        IEnumerable<ProductDTO> GetByProvider(Provider provider);
+        void Delete(int productId);
+        IEnumerable<ProductDTO> GetByCategory(CategoryDTO category);
+        IEnumerable<ProductDTO> GetByProvider(ProviderDTO provider);
         IEnumerable<ProductDTO> GetByUserCondition(Func<Product, bool> predicate);
         void Dispose();
     }

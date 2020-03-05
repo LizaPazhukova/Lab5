@@ -12,10 +12,9 @@ namespace Logic.Interfaces
     {
         IEnumerable<ProviderDTO> GetAll();
         ProviderDTO GetById(int id);
-        IEnumerable<ProviderDTO> GetProvidersByCategory(ProductCategory category);
+        IEnumerable<ProviderDTO> GetProvidersByCategory(CategoryDTO category);
         void Create(ProviderDTO item);
-        void Update(int id, ProviderDTO item);
-        void Delete(Provider provider);
+        void Delete(int providerId);
         void Dispose();
     }
 }

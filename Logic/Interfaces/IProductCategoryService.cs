@@ -13,8 +13,7 @@ namespace Logic.Interfaces
         IEnumerable<CategoryDTO> GetAll();
         CategoryDTO GetById(int id);
         void Create(CategoryDTO item);
-        void Update(int id, CategoryDTO item);
-        void Delete(ProductCategory category);
+        void Delete(int categoryId);
         void Dispose();
     }
 }

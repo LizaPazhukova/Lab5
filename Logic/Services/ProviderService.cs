@@ -7,24 +7,23 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Logic.Services
 {
     public class ProviderService: IProviderService
     {
         private readonly IUnitOfWork db;
+        private readonly IMapper mapper;
 
         public ProviderService(IUnitOfWork uow)
         {
             db = uow;
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<Provider, ProviderDTO>());
+            var mapper = new Mapper(config);
         }
 
         public IEnumerable<ProviderDTO> GetAll()
         {
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<Provider, ProviderDTO>());
-            var mapper = new Mapper(config);
             return mapper.Map<IEnumerable<Provider>, List<ProviderDTO>>(db.Providers.GetAll());
         }
 
@@ -33,16 +32,13 @@ namespace Logic.Services
             var provider = db.Providers.GetById(id);
             if (provider == null)
                 throw new ValidationException("Supplier doesn't exist");
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<ProductCategory, CategoryDTO>());
-            var mapper = new Mapper(config);
+        
             return mapper.Map<Provider, ProviderDTO>(provider);
         }
 
-        public IEnumerable<ProviderDTO> GetProvidersByCategory(ProductCategory category)
+        public IEnumerable<ProviderDTO> GetProvidersByCategory(CategoryDTO categoryDTO)
         {
-            var config = new MapperConfiguration(cfg => cfg.CreateMap<ProductCategory, CategoryDTO>());
-            var mapper = new Mapper(config);
-            return mapper.Map<IEnumerable<Provider>, List<ProviderDTO>>(db.Providers.GetAll().Where(x => x.Products.Any(p => p.ProductCategory == category)));
+            return mapper.Map<IEnumerable<Provider>, List<ProviderDTO>>(db.Providers.GetAll().Where(x => x.Products.Select(p => p.Id).Any(id => id == categoryDTO.Id)));
         }
 
         public void Create(ProviderDTO item)
@@ -57,21 +53,9 @@ namespace Logic.Services
             db.Save();
         }
 
-        public void Update(int id, ProviderDTO item)
+        public void Delete(int providerId)
         {
-            var supplier = db.Providers.GetById(id);
-            if (supplier == null)
-                return;
-
-            supplier.Name = item.Name;
-            supplier.City = item.City;
-
-            db.Save();
-        }
-
-        public void Delete(Provider provider)
-        {
-            db.Providers.Delete(provider);
+            db.Providers.Delete(providerId);
             db.Save();
         }
 

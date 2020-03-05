@@ -30,13 +30,24 @@ namespace EFCodeFirst.DAL
             ShopContext.Set<T>().Add(entity);
         }
 
-        public void Delete(T entity)
+        public void Delete(int id)
         {
+            var entity = GetById(id);
+            if (entity == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+
             ShopContext.Set<T>().Remove(entity);
         }
         public T GetById(int id)
         {
             return ShopContext.Set<T>().Find(id);
+        }
+
+        public void Update(T item)
+        {
+            ShopContext.Entry(item).State = EntityState.Modified;
         }
     }
 }

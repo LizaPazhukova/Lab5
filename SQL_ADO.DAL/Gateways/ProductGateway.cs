@@ -20,7 +20,8 @@ namespace SQL_ADO.DAL.Gateways
 
         public IEnumerable<Product> GetAll()
         {
-            string query = "SELECT * FROM Products";
+            string query = "SELECT * FROM Products Join ProviderProducts On Products.Id = ProviderProducts.Product_Id " +
+                "                               Join Providers On ProviderProducts.Provider_Id = Providers.Id";
             ICollection<Product> products = new List<Product>();
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -28,19 +29,24 @@ namespace SQL_ADO.DAL.Gateways
 
                 command.Connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
+
                 while (reader.Read())
                 {
                     ICollection<Provider> providers = new List<Provider>();
                     int id = reader.GetInt32(0);
                     string name = reader.GetString(1);
                     double price = reader.GetDouble(2);
+                    int productCategoryId = reader.GetInt32(3);
+                    // object provider = reader.GetValue(4);
+                    //int provider = reader.GetInt32(3);
                     //providers = GetProviders(id);
                     products.Add(new Product
                     {
                         Id = id,
                         Name = name,
                         Price = price,
-                       // Providers = providers
+                        ProductCategoryId = productCategoryId
+                        // Providers = providers
                     });
 
                 }
