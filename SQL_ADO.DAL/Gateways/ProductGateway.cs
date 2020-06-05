@@ -10,76 +10,131 @@ namespace SQL_ADO.DAL.Gateways
 {
     public class ProductGateway : IGateway<Product>
     {
-        private string connectionString;
+        private readonly IADOContext context;
 
-        public ProductGateway(string connection)
+        public ProductGateway(IADOContext context)
         {
-            connectionString = connection;
+            this.context = context;
         }
-
 
         public IEnumerable<Product> GetAll()
         {
-            string query = "SELECT * FROM Products Join ProviderProducts On Products.Id = ProviderProducts.Product_Id " +
-                "                               Join Providers On ProviderProducts.Provider_Id = Providers.Id";
-            ICollection<Product> products = new List<Product>();
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            string query = "SELECT * FROM Products Left Join ProviderProducts On Products.Id = ProviderProducts.Product_Id " +
+                           "Left Join Providers On ProviderProducts.Provider_Id = Providers.Id";
+            var products = new Dictionary<int, Product>();
+            using (SqlCommand command = new SqlCommand(query))
             {
-                SqlCommand command = new SqlCommand(query, connection);
-
-                command.Connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
+                context.CreateCommand(command);
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    ICollection<Provider> providers = new List<Provider>();
-                    int id = reader.GetInt32(0);
-                    string name = reader.GetString(1);
-                    double price = reader.GetDouble(2);
-                    int productCategoryId = reader.GetInt32(3);
-                    // object provider = reader.GetValue(4);
-                    //int provider = reader.GetInt32(3);
-                    //providers = GetProviders(id);
-                    products.Add(new Product
+                    while (reader.Read())
                     {
-                        Id = id,
-                        Name = name,
-                        Price = price,
-                        ProductCategoryId = productCategoryId
-                        // Providers = providers
-                    });
+                        int id = reader.GetInt32(0);
+                        Product product;
+                        if (!products.ContainsKey(id))
+                        {
+                            product = new Product()
+                            {
+                                Id = id,
+                                Name = reader.GetString(1),
+                                Price = reader.GetDouble(2),
+                                ProductCategoryId = reader.GetInt32(3)
+                            };
+                            products.Add(id, product);
+                        }
 
+                        product = products[id];
+
+                        if (reader.IsDBNull(6))
+                        {
+                            continue;
+                        }
+
+
+                        product.Providers.Add(new Provider
+                        {
+                            Id = reader.GetInt32(6),
+                            City = reader.GetString(7),
+                            Name = reader.GetString(8)
+                        });
+
+                    }
                 }
             }
-            return products;
+            return products.Values.ToList();
         }
-
         public Product Get(int id)
         {
-            string query = "SELECT * FROM Products WHERE Products.Id = @id";
-            Product prod = new Product();
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            string query = "SELECT * FROM Products Left Join ProviderProducts On Products.Id = ProviderProducts.Product_Id " +
+                           "Left Join Providers On ProviderProducts.Provider_Id = Providers.Id Where Products.Id = @Id";
+           var products = new Dictionary<int, Product>();
+            Product product = null;
+            using (SqlCommand command = new SqlCommand(query))
             {
-                SqlCommand command = new SqlCommand(query, connection);
 
-                command.Connection.Open();
-                SqlParameter idParam = new SqlParameter("@id", id);
-                command.Parameters.Add(idParam);
-                SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    prod = new Product
+                command.Parameters.AddWithValue("Id", id);
+                context.CreateCommand(command);
+                using (SqlDataReader reader = command.ExecuteReader())
+
+                    while (reader.Read())
                     {
-                        Id = reader.GetInt32(0),
-                        Name = reader.GetString(1),
-                        Price = reader.GetDouble(2),
-                        ProductCategoryId = reader.GetInt32(3)
-                    };
+                        if (!products.ContainsKey(id))
+                        {
+                            product = new Product()
+                            {
+                                Id = id,
+                                Name = reader.GetString(1),
+                                Price = reader.GetDouble(2),
 
-                }
+                            };
+                            products.Add(id, product);
+                        }
 
+                        product = products[id];
+
+                        if (reader.IsDBNull(6))
+                        {
+                            continue;
+                        }
+
+
+                        product.Providers.Add(new Provider
+                        {
+                            Id = reader.GetInt32(6),
+                            City = reader.GetString(7),
+                            Name = reader.GetString(8)
+                        }); ;
+
+                    }
             }
-            return prod;
+            return product;
+        }
+        public void Create(Product product)
+        {
+            string query = "INSERT INTO Products (Name, Price, ProductCategoryId) Values(@Name, @Price, @CategoryId)";
+
+            using (SqlCommand command = new SqlCommand(query))
+            {
+       
+                command.Parameters.AddWithValue("Name", product.Name);
+                command.Parameters.AddWithValue("Price", product.Price);
+                command.Parameters.AddWithValue("CategoryId", product.ProductCategoryId);
+
+                context.CreateCommand(command);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public void Delete(int productId)
+        {
+            string query = "Delete From Products Where Id = @Id";
+
+            using (SqlCommand command = new SqlCommand(query))
+            {
+                command.Parameters.AddWithValue("Id", productId);
+                context.CreateCommand(command);
+                command.ExecuteNonQuery();
+            }
         }
     }
 }

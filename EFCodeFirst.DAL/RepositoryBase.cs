@@ -32,7 +32,7 @@ namespace EFCodeFirst.DAL
 
         public void Delete(int id)
         {
-            var entity = GetById(id);
+            var entity = Get(id);
             if (entity == null)
             {
                 throw new ArgumentNullException("id");
@@ -40,14 +40,10 @@ namespace EFCodeFirst.DAL
 
             ShopContext.Set<T>().Remove(entity);
         }
-        public T GetById(int id)
+        public T Get(int id)
         {
             return ShopContext.Set<T>().Find(id);
         }
 
-        public void Update(T item)
-        {
-            ShopContext.Entry(item).State = EntityState.Modified;
-        }
     }
 }

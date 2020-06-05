@@ -3,6 +3,8 @@ using EFCodeFirst.DAL;
 using EFCodeFirst.DAL.Entities;
 using Logic.DTO;
 using Logic.Interfaces;
+//using SQL_ADO.DAL;
+//using SQL_ADO.DAL.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -24,21 +26,22 @@ namespace Logic.Services
 
         public IEnumerable<ProductDTO> GetAll()
         {
-           // Mapper.Initialize(cfg => cfg.CreateMap<Product, ProductDTO>());
             return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll());
         }
 
         public ProductDTO GetById(int id)
         {
-            var product = db.Products.GetById(id);
+            var product = db.Products.Get(id);
             if (product == null)
                 throw new ValidationException("Product doesn't exist");
-            //Mapper.Initialize(cfg => cfg.CreateMap<Product, ProductDto>());
             return _mapper.Map<Product, ProductDTO>(product);
         }
 
         public void Create(ProductDTO item)
         {
+            if (item == null)
+                throw new ArgumentException();
+
             var product = new Product()
             {
                 Name = item.Name,
@@ -57,12 +60,18 @@ namespace Logic.Services
 
         public IEnumerable<ProductDTO> GetByCategory(CategoryDTO categoryDTO)
         {
+            if (categoryDTO == null)
+                throw new ArgumentException();
+
             return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.ProductCategory.Name == categoryDTO.Name));
            
         }
 
         public IEnumerable<ProductDTO> GetByProvider(ProviderDTO providerDTO)
         {
+            if (providerDTO == null)
+                throw new ArgumentException();
+
             return _mapper.Map<IEnumerable<Product>, List<ProductDTO>>(db.Products.GetAll().Where(x => x.Providers.Select(p => p.Id).Contains(providerDTO.Id)));
         }
 

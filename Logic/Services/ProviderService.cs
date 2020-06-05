@@ -4,6 +4,8 @@ using EFCodeFirst.DAL.Entities;
 using Logic.DTO;
 using Logic.Interfaces;
 using System;
+//using SQL_ADO.DAL;
+//using SQL_ADO.DAL.Entities;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace Logic.Services
         {
             db = uow;
             var config = new MapperConfiguration(cfg => cfg.CreateMap<Provider, ProviderDTO>());
-            var mapper = new Mapper(config);
+            mapper = new Mapper(config);
         }
 
         public IEnumerable<ProviderDTO> GetAll()
@@ -29,7 +31,7 @@ namespace Logic.Services
 
         public ProviderDTO GetById(int id)
         {
-            var provider = db.Providers.GetById(id);
+            var provider = db.Providers.Get(id);
             if (provider == null)
                 throw new ValidationException("Supplier doesn't exist");
         
@@ -38,11 +40,15 @@ namespace Logic.Services
 
         public IEnumerable<ProviderDTO> GetProvidersByCategory(CategoryDTO categoryDTO)
         {
-            return mapper.Map<IEnumerable<Provider>, List<ProviderDTO>>(db.Providers.GetAll().Where(x => x.Products.Select(p => p.Id).Any(id => id == categoryDTO.Id)));
+            return mapper.Map<IEnumerable<Provider>, List<ProviderDTO>>(db.Providers.GetAll().
+                          Where(x => x.Products.Select(p => p.Id).Any(id => id == categoryDTO.Id)));
         }
 
         public void Create(ProviderDTO item)
         {
+            if (item == null)
+                throw new ArgumentException();
+
             var supplier = new Provider()
             {
                 Name = item.Name,

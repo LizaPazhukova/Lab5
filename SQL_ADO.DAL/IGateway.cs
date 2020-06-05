@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace SQL_ADO.DAL
 {
-    interface IGateway<T> where T : class
+    public interface IGateway<T> where T : class
     {
         IEnumerable<T> GetAll();
         T Get(int id);
-        //IEnumerable<T> Find(Func<T, bool> predicate);
-        //void Create(T item);
-        //void Update(T item);
-        //void Delete(int id);
+        void Create(T item);
+        void Delete(int id);
     }
 }
